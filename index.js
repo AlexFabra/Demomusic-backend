@@ -9,7 +9,8 @@ const app = express();
 //cors:
 app.use(cors());
 
-app.use(express.static('public'));
+//production frontend route:
+//app.use(express.static('public'));
 
 //read and parse body:
 app.use(express.json());

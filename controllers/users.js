@@ -27,7 +27,7 @@ const getUsers = async (req, res) => {
 
 const postUser = async (req, res = response) => {
 
-    const { email, password } = req.body;
+    const { name, email, password } = req.body;
 
     try {
 
