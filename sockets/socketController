@@ -1,0 +1,27 @@
+const { Socket } = require("socket.io");
+const { checkJwt } = require("../helpers/jwt");
+
+const socketController = async (socket = new Socket(), io) => {
+
+    const token = socket.handshake.headers.token;
+    const usuario = await checkJwt(token);
+
+    if (!usuario) {
+        return socket.disconnect();
+    }
+
+    console.log(usuario.nombre + 'se ha conectado');
+
+    //emit the active user
+    io.emit('active-user', user.id);
+
+    //emit the inactive user
+    socket.on('disconnect', () => {
+        io.emit('inactive-user', user.id);
+    })
+
+}
+
+module.exports = {
+    socketController
+}

@@ -21,6 +21,28 @@ const generateJWT = (uid) => {
 
 }
 
+const checkJwt = async (token = '') => {
+    try {
+        if (token.length < 10) {
+            return null;
+        }
+        const { uid } = jwt.verify(token, process.env.SECRETORPRIVATEKEY);
+        const usuario = await Usuario.findById(uid); 
+        if (usuario) {
+            if (usuario.estado) {
+                return usuario;
+            }
+            return null;
+        }
+        return null;
+
+    } catch (error) {
+        console.log(error);
+        return null
+    }
+}
+
 module.exports = {
-    generateJWT
+    generateJWT,
+    checkJwt
 }

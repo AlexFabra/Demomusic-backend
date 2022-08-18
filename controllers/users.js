@@ -59,7 +59,7 @@ const postUser = async (req, res = response) => {
         });
 
     } catch (error) {
-        console.log(error)
+        console.log(error);
         res.status(500).json({
             ok: false,
             msg: 'error'
@@ -144,9 +144,6 @@ const deleteUser = async (req, res = response) => {
         })
     }
 }
-
-
-
 
 module.exports = {
     getUsers,
