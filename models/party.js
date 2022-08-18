@@ -1,5 +1,5 @@
 const { Schema, model } = require('mongoose');
-const { UserSchema} = require('./user');
+const { UserSchema } = require('./user');
 
 
 const PartySchema = Schema({
@@ -13,9 +13,12 @@ const PartySchema = Schema({
     members: {
         type: [String]
     },
-    list: {
-        type: [String]
-    },
+    list: [{
+        id: { type: String },
+        img: { type: String },
+        name: { type: String },
+        votes: { type: Number }
+    }],
     current: {
         type: Number
     },
