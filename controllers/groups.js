@@ -23,11 +23,10 @@ const find = async (req, res = response) => {
 }
 
 const postGroup = async (req, res = response) => {
-    const { name, url, members } = req.body;
-    //read token:
-    const token = req.header('x-token');
 
     try {
+        //read token:
+        const token = req.header('x-token');
         const party = new Party(req.body);
 
         //get decoded uid from token:
@@ -60,6 +59,7 @@ const postGroup = async (req, res = response) => {
 
             guest.groupsInvitations.push(party._id);
             await guest.save();
+            //TODO: send invitation with sockets
         }));
 
     } catch (error) {
@@ -72,4 +72,33 @@ const postGroup = async (req, res = response) => {
 
 }
 
-module.exports = { find, postGroup }
+const getGroupsByUser = async (req, res = response) => {
+
+    try {
+        //get decoded uid from token:
+        const { uid } = jwt.verify(token, process.env.JWT_SECRET);
+
+        const user = await User.findById(uid, '');
+
+        const groups = [];
+
+        await Promise.all(user.groups.map(async (group) => {
+            const groupFound = await Party.findById(group);
+            groups.push(groupFound);
+        }));
+
+        res.json({
+            ok: true,
+            groups,
+            msg: 'get parties'
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'error creating party'
+        })
+    }
+}
+
+module.exports = { find, postGroup, getGroupsByUser }
