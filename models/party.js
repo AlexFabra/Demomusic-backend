@@ -3,25 +3,32 @@ const { UserSchema } = require('./user');
 
 
 const PartySchema = Schema({
-    url: {
-        type: String
-    },
+
     name: {
         type: String,
         required: true
     },
+
+    img: {
+        type: String
+    },
+
     members: {
         type: [String]
     },
+
     list: [{
         id: { type: String },
         img: { type: String },
         name: { type: String },
-        votes: { type: Number }
+        votes: { type: Number },
+        votedFor: { type: [String] }
     }],
+
     current: {
         type: Number
     },
+
     mode: {
         type: String,
         default: 'GROUP_ROLE'

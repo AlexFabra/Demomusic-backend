@@ -123,7 +123,6 @@ const postMedia = async (req, res = response) => {
         if (user.groups.includes(req.params.id)) {
 
             const party = await Party.findById(req.params.id);
-            console.log(party);
             const newMediaItem = { "id": id, "img": img, "name": name, "votes": votes };
             party.list.push(newMediaItem);
             await party.save();
@@ -134,7 +133,6 @@ const postMedia = async (req, res = response) => {
             });
 
         } else {
-            console.log(req.params.id)
             res.status(401).json({
                 ok: false,
                 msg: 'unauthorized'
@@ -150,4 +148,46 @@ const postMedia = async (req, res = response) => {
     }
 }
 
-module.exports = { find, postGroup, getGroupsByUser, postMedia }
+const voteMedia = async (req, res = response) => {
+    const { mediaId } = req.body;
+    try {
+        //read token:
+        const token = req.header('x-token');
+
+        //get decoded uid from token:
+        const { uid } = jwt.verify(token, process.env.JWT_SECRET);
+
+        const user = await User.findById(uid, '');
+
+        if (user.groups.includes(req.params.id)) {
+
+            let party = await Party.findById(req.params.id);
+            party.list.map(mediaItem => {
+                if (mediaItem.id == mediaId) {
+                    mediaItem.votes += 1;
+                }
+            });
+            await party.save();
+
+            res.json({
+                ok: true,
+                party
+            });
+
+        } else {
+            res.status(401).json({
+                ok: false,
+                msg: 'unauthorized'
+            })
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            ok: false,
+            msg: 'error posting media'
+        })
+    }
+}
+
+
+module.exports = { find, postGroup, getGroupsByUser, postMedia, voteMedia }
