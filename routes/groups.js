@@ -2,15 +2,15 @@
 
 const { Router } = require('express');
 const { validateJWT } = require('../middlewares/validate-jwt');
-const { find, postGroup, getGroupsByUser, postMedia, voteMedia } = require('../controllers/groups');
+const { postGroup, getGroupsByUser, postMedia, voteMedia } = require('../controllers/groups');
 
 const router = Router();
 
-router.get(
-    '/:by',
-    validateJWT,
-    find
-);
+// router.get(
+//     '/:by',
+//     validateJWT,
+//     find
+// );
 
 router.post(
     '/',
