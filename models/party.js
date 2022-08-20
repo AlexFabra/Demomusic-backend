@@ -13,10 +13,10 @@ const PartySchema = Schema({
         type: String
     },
 
-    members: 
+    members:
         [{
             email: { type: String },
-            admin: { type: Boolean}
+            admin: { type: Boolean }
         }]
     ,
 
@@ -25,7 +25,8 @@ const PartySchema = Schema({
         img: { type: String },
         name: { type: String },
         votes: { type: Number },
-        votedFor: { type: [String] }
+        votedFor: {type: [String]} 
+        
     }],
 
     current: {

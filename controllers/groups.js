@@ -37,9 +37,9 @@ const postGroup = async (req, res = response) => {
         const user = await User.findById(uid, '');
 
         //add the user to the members array like admin:
-        party.members.push({email:user.email,admin:true});
-        console.log(party);
-        
+        party.members.push({ email: user.email, admin: true });
+        //console.log(party);
+
         await party.save();
 
         res.json({
@@ -61,7 +61,7 @@ const postGroup = async (req, res = response) => {
             }
 
             guest.groupsInvitations.push(party._id);
-            console.log(guest)
+            //console.log(guest)
             await guest.save();
 
             //TODO: send invitation with sockets
@@ -105,7 +105,7 @@ const getGroupsByUser = async (req, res = response) => {
 
         res.json({
             ok: true,
-            parties:groups,
+            parties: groups,
             msg: 'get parties'
         });
 
@@ -162,6 +162,7 @@ const postMedia = async (req, res = response) => {
 
 const voteMedia = async (req, res = response) => {
     const { mediaId } = req.body;
+    let alreadyVoted = false;
     try {
         //read token:
         const token = req.header('x-token');
@@ -171,19 +172,29 @@ const voteMedia = async (req, res = response) => {
 
         const user = await User.findById(uid, '');
 
+        //user only can vote if the group is included in his groups:
         if (user.groups.includes(req.params.id)) {
 
             let party = await Party.findById(req.params.id);
             party.list.map(mediaItem => {
-                if (mediaItem.id == mediaId) {
-                    mediaItem.votes += 1;
+                
+                if (mediaItem.id == mediaId && mediaItem.votedFor.includes(user.id)) {
+                    alreadyVoted=true;
                 }
+
+                if (mediaItem.id == mediaId && !mediaItem.votedFor.includes(user.id)) {
+                    mediaItem.votes += 1;
+                    mediaItem.votedFor.push(user._id)
+                }
+                
             });
+
             await party.save();
 
             res.json({
                 ok: true,
-                party
+                party,
+                alreadyVoted
             });
 
         } else {
