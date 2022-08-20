@@ -2,7 +2,7 @@
 
 const { Router } = require('express');
 const { validateJWT } = require('../middlewares/validate-jwt');
-const { postGroup, getGroupsByUser, postMedia, voteMedia } = require('../controllers/groups');
+const { postGroup, getGroupsByUser, postMedia, voteMedia, getGroupInvitations } = require('../controllers/groups');
 
 const router = Router();
 
@@ -22,6 +22,12 @@ router.get(
     '/user',
     validateJWT,
     getGroupsByUser
+)
+
+router.get(
+    '/party-invitations',
+    validateJWT,
+    getGroupInvitations
 )
 
 router.post(

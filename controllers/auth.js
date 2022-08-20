@@ -56,7 +56,9 @@ const googleLogin = async (req, res = response) => {
                 email,
                 password: '@@@',
                 img: picture,
-                google: true
+                google: true,
+                groups:[],
+                groupsInvitations:[]
             })
         } else {
             user = userDb;

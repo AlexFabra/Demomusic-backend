@@ -118,6 +118,40 @@ const getGroupsByUser = async (req, res = response) => {
     }
 }
 
+const getGroupInvitations = async (req, res = response) => {
+
+    try {
+
+        //read token:
+        const token = req.header('x-token');
+
+        //get decoded uid from token:
+        const { uid } = jwt.verify(token, process.env.JWT_SECRET);
+
+        const user = await User.findById(uid, '');
+
+        const groups = [];
+
+        await Promise.all(user.groupsInvitations.map(async (group) => {
+            const groupFound = await Party.findById(group);
+            groups.push(groupFound);
+        }));
+
+        res.json({
+            ok: true,
+            parties: groups,
+            msg: 'get party invitations'
+        });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'error getting party invitations'
+        })
+    }
+}
+
 const postMedia = async (req, res = response) => {
 
     const { id, img, name, votes } = req.body;
@@ -177,16 +211,16 @@ const voteMedia = async (req, res = response) => {
 
             let party = await Party.findById(req.params.id);
             party.list.map(mediaItem => {
-                
+
                 if (mediaItem.id == mediaId && mediaItem.votedFor.includes(user.id)) {
-                    alreadyVoted=true;
+                    alreadyVoted = true;
                 }
 
                 if (mediaItem.id == mediaId && !mediaItem.votedFor.includes(user.id)) {
                     mediaItem.votes += 1;
                     mediaItem.votedFor.push(user._id)
                 }
-                
+
             });
 
             await party.save();
@@ -213,4 +247,4 @@ const voteMedia = async (req, res = response) => {
 }
 
 
-module.exports = { postGroup, getGroupsByUser, postMedia, voteMedia }
+module.exports = { postGroup, getGroupsByUser, getGroupInvitations, postMedia, voteMedia }
