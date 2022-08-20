@@ -36,9 +36,10 @@ const postGroup = async (req, res = response) => {
         //find the user that have done the request
         const user = await User.findById(uid, '');
 
-        //add the user to the members array:
-        party.members.push(user.email);
-
+        //add the user to the members array like admin:
+        party.members.push({email:user.email,admin:true});
+        console.log(party);
+        
         await party.save();
 
         res.json({
@@ -51,16 +52,18 @@ const postGroup = async (req, res = response) => {
         user.groups.push(party._id);
         await user.save();
 
-        //send invitations to users:
+        //send invitations to users:                                            
         await Promise.all(party.members.map(async (member) => {
-            const guest = await User.findOne({ 'email': member }, '');
+            const guest = await User.findOne({ 'email': member.email }, '');
 
             if (!guest || guest.email !== member.email) {
                 return;
             }
 
             guest.groupsInvitations.push(party._id);
+            console.log(guest)
             await guest.save();
+
             //TODO: send invitation with sockets
         }));
 
@@ -94,11 +97,11 @@ const getGroupsByUser = async (req, res = response) => {
         }));
 
         //TODO: borrar
-        console.log("----------------email-----------------")
-        console.log(user.email)
-        console.log("----------------grupos-----------------")
-        console.log(groups) 
-        console.log("------------------fin---------------")
+        // console.log("----------------email-----------------")
+        // console.log(user.email)
+        // console.log("----------------grupos-----------------")
+        // console.log(groups) 
+        // console.log("------------------fin---------------")
 
         res.json({
             ok: true,
@@ -110,7 +113,7 @@ const getGroupsByUser = async (req, res = response) => {
         console.log(error);
         res.status(500).json({
             ok: false,
-            msg: 'error creating party'
+            msg: 'error getting party'
         })
     }
 }

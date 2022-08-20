@@ -13,9 +13,12 @@ const PartySchema = Schema({
         type: String
     },
 
-    members: {
-        type: [String]
-    },
+    members: 
+        [{
+            email: { type: String },
+            admin: { type: Boolean}
+        }]
+    ,
 
     list: [{
         id: { type: String },
