@@ -175,7 +175,7 @@ const acceptInvitation = async (req, res = response) => {
         if (groupFoundOnUser && groupFoundOnGroups) {
 
             user.groups.push(groupToAccept);
-            removeItemFromArr(user.groupsInvitations, groupToAccept);
+            user.groupsInvitations = removeItemFromArr(user.groupsInvitations, groupToAccept);
 
             await user.save();
 
@@ -227,7 +227,7 @@ const declineInvitation = async (req, res = response) => {
 
         const user = await User.findById(uid, '');
 
-        removeItemFromArr(user.groupsInvitations, groupToDecline);
+        user.groupsInvitations = removeItemFromArr(user.groupsInvitations, groupToDecline);
 
         await user.save();
 
@@ -288,6 +288,48 @@ const postMedia = async (req, res = response) => {
     }
 }
 
+const deleteMedia = async (req, res = response) => {
+
+    let deletingPermission = false;
+
+    try {
+
+        const party = await Party.findById(req.params.id);
+        const { id, img, name, votes } = req.body;
+
+        //read token:
+        const token = req.header('x-token');
+        //get decoded uid from token:
+        const { uid } = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(uid, '');
+
+        party.members.map(member => {
+            if (member.email == user.email && member.admin) {
+                deletingPermission = true;
+            }
+        });
+
+        if (deletingPermission) {
+            party.list = party.list.filter(e => e.id !== id);
+        }
+
+        await party.save();
+
+        res.json({
+            ok: true,
+            list: party.list
+        });
+
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            ok: false,
+            msg: 'error deleting media'
+        })
+    }
+}
+
 const voteMedia = async (req, res = response) => {
     const { mediaId } = req.body;
     let alreadyVoted = false;
@@ -341,8 +383,7 @@ const voteMedia = async (req, res = response) => {
 }
 
 function removeItemFromArr(arr, item) {
-    var i = arr.indexOf(item);
-    arr.splice(i, 1);
+    return arr.filter(e => e !== item);
 }
 
-module.exports = { postGroup, getGroupsByUser, getGroupInvitations, postMedia, voteMedia, acceptInvitation, declineInvitation }
+module.exports = { postGroup, getGroupsByUser, getGroupInvitations, postMedia, voteMedia, acceptInvitation, declineInvitation, deleteMedia }

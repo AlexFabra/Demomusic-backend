@@ -2,7 +2,7 @@
 
 const { Router } = require('express');
 const { validateJWT } = require('../middlewares/validate-jwt');
-const { postGroup, getGroupsByUser, postMedia, voteMedia, getGroupInvitations, acceptInvitation, declineInvitation } = require('../controllers/groups');
+const { postGroup, getGroupsByUser, postMedia, voteMedia, getGroupInvitations, acceptInvitation, declineInvitation, deleteMedia } = require('../controllers/groups');
 
 const router = Router();
 
@@ -53,6 +53,12 @@ router.delete(
     '/decline-invitation',
     validateJWT,
     declineInvitation
+)
+
+router.delete(
+    '/:id/media',
+    validateJWT,
+    deleteMedia
 )
 
 module.exports = router;
