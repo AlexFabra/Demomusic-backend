@@ -33,12 +33,33 @@ const postGroup = async (req, res = response) => {
 
         //get decoded uid from token:
         const { uid } = jwt.verify(token, process.env.JWT_SECRET);
+
         //find the user that have done the request
         const user = await User.findById(uid, '');
 
+        //upload his object to add the group that he just created 
+        user.groups.push(party._id);
+
+        await user.save();
+
+        //send invitations to users:                                            
+        await Promise.all(party.members.map(async (member) => {
+
+            const guest = await User.findOne({ 'email': member.email }, '');
+
+            if (!guest || guest.email !== member.email) {
+                return;
+            }
+
+            guest.groupsInvitations.push(party._id);
+
+            await guest.save();
+
+            //TODO: send invitation with sockets
+        }));
+
         //add the user to the members array like admin:
         party.members.push({ email: user.email, admin: true });
-        //console.log(party);
 
         await party.save();
 
@@ -47,25 +68,6 @@ const postGroup = async (req, res = response) => {
             party,
             msg: 'post party'
         });
-
-        //upload his object to add the group that he just created 
-        user.groups.push(party._id);
-        await user.save();
-
-        //send invitations to users:                                            
-        await Promise.all(party.members.map(async (member) => {
-            const guest = await User.findOne({ 'email': member.email }, '');
-
-            if (!guest || guest.email !== member.email) {
-                return;
-            }
-
-            guest.groupsInvitations.push(party._id);
-            //console.log(guest)
-            await guest.save();
-
-            //TODO: send invitation with sockets
-        }));
 
     } catch (error) {
         console.log(error);
@@ -148,6 +150,98 @@ const getGroupInvitations = async (req, res = response) => {
         res.status(500).json({
             ok: false,
             msg: 'error getting party invitations'
+        })
+    }
+}
+
+const acceptInvitation = async (req, res = response) => {
+
+    try {
+
+        const groupToAccept = req.body.partyId;
+
+        //read token:
+        const token = req.header('x-token');
+
+        //get decoded uid from token:
+        const { uid } = jwt.verify(token, process.env.JWT_SECRET);
+
+        const user = await User.findById(uid, '');
+
+        //if find 
+        const groupFoundOnUser = user.groupsInvitations.find(group => group == groupToAccept)
+        const groupFoundOnGroups = await Party.findById(groupToAccept)
+
+        if (groupFoundOnUser && groupFoundOnGroups) {
+
+            user.groups.push(groupToAccept);
+            removeItemFromArr(user.groupsInvitations, groupToAccept);
+
+            await user.save();
+
+            res.json({
+                ok: true,
+                partyInvitations: user.groupsInvitations,
+                msg: 'invitation accepted'
+            });
+
+        } else {
+
+            res.json({
+                ok: true,
+                partyInvitations: user.groupsInvitations,
+                msg: 'not founded group. Invitation deleted'
+            });
+        }
+
+        await Promise.all(user.groupsInvitations.map(async (group) => {
+            if (group == groupToAccept) {
+                user.groups.push(groupToAccept)
+            }
+        }));
+
+        removeItemFromArr(user.groupsInvitations, groupToAccept);
+
+
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'error accepting party invitation'
+        })
+    }
+}
+
+const declineInvitation = async (req, res = response) => {
+
+    try {
+
+        const groupToDecline = req.body.partyId;
+
+        //read token:
+        const token = req.header('x-token');
+
+        //get decoded uid from token:
+        const { uid } = jwt.verify(token, process.env.JWT_SECRET);
+
+        const user = await User.findById(uid, '');
+
+        removeItemFromArr(user.groupsInvitations, groupToDecline);
+
+        await user.save();
+
+        res.json({
+            ok: true,
+            partyInvitations: user.groupsInvitations,
+            msg: 'invitation declined'
+        });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'error declining party invitation'
         })
     }
 }
@@ -246,5 +340,9 @@ const voteMedia = async (req, res = response) => {
     }
 }
 
+function removeItemFromArr(arr, item) {
+    var i = arr.indexOf(item);
+    arr.splice(i, 1);
+}
 
-module.exports = { postGroup, getGroupsByUser, getGroupInvitations, postMedia, voteMedia }
+module.exports = { postGroup, getGroupsByUser, getGroupInvitations, postMedia, voteMedia, acceptInvitation, declineInvitation }

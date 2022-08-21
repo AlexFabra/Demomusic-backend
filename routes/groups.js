@@ -2,7 +2,7 @@
 
 const { Router } = require('express');
 const { validateJWT } = require('../middlewares/validate-jwt');
-const { postGroup, getGroupsByUser, postMedia, voteMedia, getGroupInvitations } = require('../controllers/groups');
+const { postGroup, getGroupsByUser, postMedia, voteMedia, getGroupInvitations, acceptInvitation, declineInvitation } = require('../controllers/groups');
 
 const router = Router();
 
@@ -41,6 +41,18 @@ router.post(
     '/:id/vote',
     validateJWT,
     voteMedia
+)
+
+router.put(
+    '/accept-invitation',
+    validateJWT,
+    acceptInvitation   
+)
+
+router.delete(
+    '/decline-invitation',
+    validateJWT,
+    declineInvitation
 )
 
 module.exports = router;
